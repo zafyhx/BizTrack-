@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "382409232438",
+    "project_id": "biztrack-pbb-uas",
+    "storage_bucket": "biztrack-pbb-uas.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:382409232438:android:3dd0fda697f5ea88c38897",
+        "android_client_info": {
+          "package_name": "com.example.biztrack_pbb"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDEVG--Ftey3l635pVrjibb6AIwmZuS2JY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
