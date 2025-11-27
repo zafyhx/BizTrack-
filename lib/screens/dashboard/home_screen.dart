@@ -95,6 +95,15 @@ class HomeScreen extends StatelessWidget {
               return ProductCard(
                 product: item,
                 onDelete: () => _showDeleteDialog(context, item),
+
+                onEdit: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AddProductScreen(productToEdit: item),
+                    ),
+                  );
+                },
               );
             },
           );

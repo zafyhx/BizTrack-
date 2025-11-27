@@ -48,6 +48,35 @@ class ProductProvider extends ChangeNotifier {
     }
   }
 
+  // --- FUNGSI UPDATE PRODUK ---//
+  Future<void> updateProduct(
+      String productId, String name, int price, int stock) async {
+    try {
+      _setLoading(true);
+
+      final uid = _auth.currentUser?.uid;
+
+      await _db
+          .collection('users')
+          .doc(uid)
+          .collection('products')
+          .doc(productId)
+          .update({
+        'name': name,
+        'price': price,
+        'stock': stock,
+        'created_at': FieldValue.serverTimestamp(),
+      });
+
+      print("✅ SUKSES: Data $name terupdate di biztrack-db");
+      _setLoading(false);
+    } catch (e) {
+      _setLoading(false);
+      print("❌ ERROR DETAIL: $e");
+      throw "Gagal mengupdate barang: $e";
+    }
+  }
+
   // --- FUNGSI AMBIL DATA (STREAM) ---
   Stream<List<ProductModel>> getProductsStream() {
     final user = _auth.currentUser;
