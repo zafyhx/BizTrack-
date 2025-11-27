@@ -44,7 +44,7 @@ class ProductProvider extends ChangeNotifier {
     } catch (e) {
       _setLoading(false);
       print("❌ ERROR DETAIL: $e"); // Supaya kelihatan di debug console
-      throw "Gagal simpan barang: $e";
+      throw "Gagal menyimpan barang: $e";
     }
   }
 
@@ -69,6 +69,23 @@ class ProductProvider extends ChangeNotifier {
             return ProductModel.fromMap(doc.data(), doc.id);
           }).toList();
         });
+  }
+
+  // --- FUNGSI HAPUS PRODUK ---
+  Future<void> deleteProduct(String productId) async {
+    try {
+      final uid = _auth.currentUser?.uid;
+
+      await _db
+          .collection('users')
+          .doc(uid)
+          .collection('products')
+          .doc(productId)
+          .delete();
+    } catch (e) {
+      print("❌ ERROR DETAIL: $e");
+      throw "Gagal menghapus barang: $e";
+    }
   }
 
   void _setLoading(bool value) {
