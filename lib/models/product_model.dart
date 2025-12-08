@@ -3,30 +3,33 @@ class ProductModel {
   final String name;
   final int price;
   final int stock;
+  final String category; // <--- FIELD BARU
 
   ProductModel({
     required this.id,
     required this.name,
     required this.price,
     required this.stock,
+    required this.category,
   });
 
-  // Fungsi 1: Mengubah Data dari Firebase (Map) menjadi Object Dart
   factory ProductModel.fromMap(Map<String, dynamic> data, String documentId) {
     return ProductModel(
       id: documentId,
-      name: data['name'] ?? '',
+      name: data['name'] ?? 'Tanpa Nama',
       price: data['price'] ?? 0,
       stock: data['stock'] ?? 0,
+      // Default ke 'Makanan' jika data lama tidak punya kategori
+      category: data['category'] ?? 'Makanan',
     );
   }
 
-  // Fungsi 2: Mengubah Object Dart menjadi Map untuk disimpan ke Firebase
   Map<String, dynamic> toMap() {
     return {
       'name': name,
       'price': price,
       'stock': stock,
+      'category': category,
       'created_at': DateTime.now(),
     };
   }

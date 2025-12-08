@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+
+import '../../models/product_model.dart';
 import '../../providers/product_provider.dart';
-import '../../models/product_model.dart'; // Import Model
 
 class AddProductScreen extends StatefulWidget {
-  // Tambahkan parameter Opsional
-  // Kalau null = Mode Tambah. Kalau ada isinya = Mode Edit.
+  // Parameter Opsional: Null = Mode Tambah, Ada Isi = Mode Edit
   final ProductModel? productToEdit;
 
   const AddProductScreen({super.key, this.productToEdit});
@@ -17,19 +17,31 @@ class AddProductScreen extends StatefulWidget {
 
 class _AddProductScreenState extends State<AddProductScreen> {
   final _formKey = GlobalKey<FormState>();
+
+  // Controller untuk Input Teks Biasa
   final _nameController = TextEditingController();
   final _priceController = TextEditingController();
   final _stockController = TextEditingController();
 
+  // --- BAGIAN BARU 1: STATE UNTUK KATEGORI ---
+  String _selectedCategory = 'Makanan'; // Default Value
+  final List<String> _categories = ['Makanan', 'Minuman', 'Snack', 'Dessert'];
+
   @override
   void initState() {
     super.initState();
+
     // LOGIKA PINTAR: Cek apakah ini mode Edit?
     if (widget.productToEdit != null) {
-      // Jika iya, isi formulir dengan data lama
+      // 1. Isi data teks (Nama, Harga, Stok)
       _nameController.text = widget.productToEdit!.name;
       _priceController.text = widget.productToEdit!.price.toString();
       _stockController.text = widget.productToEdit!.stock.toString();
+
+      // 2. Isi data Kategori (Validasi agar tidak error jika kategori lama tidak ada di list)
+      if (_categories.contains(widget.productToEdit!.category)) {
+        _selectedCategory = widget.productToEdit!.category;
+      }
     }
   }
 
@@ -42,25 +54,26 @@ class _AddProductScreenState extends State<AddProductScreen> {
       final price = int.parse(_priceController.text);
       final stock = int.parse(_stockController.text);
 
+      // --- BAGIAN BARU 2: KIRIM PARAMETER KATEGORI KE PROVIDER ---
       if (widget.productToEdit == null) {
-        // --- MODE TAMBAH BARU ---
-        await provider.addProduct(name, price, stock);
+        // Mode Tambah
+        await provider.addProduct(name, price, stock, _selectedCategory);
       } else {
-        // --- MODE UPDATE (EDIT) ---
+        // Mode Edit
         await provider.updateProduct(
-          widget.productToEdit!.id, // ID Lama jangan berubah
-          name, 
-          price, 
-          stock
+          widget.productToEdit!.id,
+          name,
+          price,
+          stock,
+          _selectedCategory, // Jangan lupa kirim kategori yang diedit
         );
       }
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Data berhasil disimpan!")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Data berhasil disimpan!")));
       Navigator.pop(context);
-
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
@@ -71,28 +84,57 @@ class _AddProductScreenState extends State<AddProductScreen> {
   @override
   Widget build(BuildContext context) {
     final isLoading = context.watch<ProductProvider>().isLoading;
-    // Ubah Judul Halaman sesuai Mode
     final isEditMode = widget.productToEdit != null;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEditMode ? "Edit Barang" : "Tambah Barang Baru"),
+        title: Text(isEditMode ? "Edit Menu" : "Tambah Menu Baru"),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Form(
           key: _formKey,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // INPUT NAMA
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(
-                  labelText: "Nama Produk",
-                  prefixIcon: Icon(Icons.inventory_2),
+                  labelText: "Nama Menu",
+                  prefixIcon: Icon(Icons.fastfood),
                 ),
                 validator: (val) => val!.isEmpty ? "Nama wajib diisi" : null,
               ),
               const SizedBox(height: 20),
+
+              // --- BAGIAN BARU 3: DROPDOWN PILIHAN KATEGORI ---
+              DropdownButtonFormField<String>(
+                initialValue: _selectedCategory,
+                decoration: const InputDecoration(
+                  labelText: "Kategori",
+                  prefixIcon: Icon(Icons.category),
+                  border: OutlineInputBorder(),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
+                ),
+                items: _categories.map((String category) {
+                  return DropdownMenuItem(
+                    value: category,
+                    child: Text(category),
+                  );
+                }).toList(),
+                onChanged: (newValue) {
+                  setState(() {
+                    _selectedCategory = newValue!;
+                  });
+                },
+              ),
+              const SizedBox(height: 20),
+
+              // INPUT HARGA & STOK
               Row(
                 children: [
                   Expanded(
@@ -101,7 +143,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       keyboardType: TextInputType.number,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       decoration: const InputDecoration(
-                        labelText: "Harga Jual",
+                        labelText: "Harga",
                         prefixText: "Rp ",
                       ),
                       validator: (val) => val!.isEmpty ? "Wajib isi" : null,
@@ -115,7 +157,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       decoration: const InputDecoration(
                         labelText: "Stok",
-                        suffixText: "Pcs",
+                        suffixText: "Porsi",
                       ),
                       validator: (val) => val!.isEmpty ? "Wajib isi" : null,
                     ),
@@ -123,13 +165,18 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 ],
               ),
               const SizedBox(height: 40),
-              isLoading
-                  ? const CircularProgressIndicator()
-                  : ElevatedButton(
-                      onPressed: _submit,
-                      // Ubah tulisan tombol sesuai Mode
-                      child: Text(isEditMode ? "UPDATE DATA" : "SIMPAN BARU"),
-                    ),
+
+              // TOMBOL SIMPAN
+              SizedBox(
+                width: double.infinity,
+                height: 50, // Tombol besar agar mudah ditekan
+                child: isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : ElevatedButton(
+                        onPressed: _submit,
+                        child: Text(isEditMode ? "UPDATE MENU" : "SIMPAN MENU"),
+                      ),
+              ),
             ],
           ),
         ),
