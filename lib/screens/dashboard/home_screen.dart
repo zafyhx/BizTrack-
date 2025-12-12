@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+
 import '../../models/product_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/product_provider.dart';
@@ -17,27 +18,41 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   // --- STATE LOKAL ---
-  String _selectedCategory = 'All'; // Menyimpan kategori yang sedang dipilih user
+  String _selectedCategory =
+      'All'; // Menyimpan kategori yang sedang dipilih user
   String _searchQuery = ''; // Menyimpan teks pencarian
   int _bottomNavIndex = 0; // Tab aktif di footer
 
   // DAFTAR KATEGORI LENGKAP
-  final List<String> _categories = ['All', 'Makanan', 'Minuman', 'Snack', 'Dessert'];
+  final List<String> _categories = [
+    'All',
+    'Makanan',
+    'Minuman',
+    'Snack',
+    'Dessert',
+  ];
 
   @override
   Widget build(BuildContext context) {
     // Variabel Tema & Format Uang
     final primaryColor = Theme.of(context).primaryColor;
-    final currencyFormatter = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+    final currencyFormatter = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
 
     return Scaffold(
-      backgroundColor: Colors.grey[50], 
+      backgroundColor: Colors.grey[50],
 
       // --- 1. NAVBAR ATAS (APPBAR) ---
       appBar: AppBar(
         backgroundColor: primaryColor,
         elevation: 0,
-        title: const Text("Menu Cafe", style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          "Menu Cafe",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.logout),
@@ -48,7 +63,10 @@ class _HomeScreenState extends State<HomeScreen> {
           IconButton(
             icon: const Icon(Icons.add_box_outlined),
             tooltip: "Tambah Menu Baru",
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AddProductScreen())),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const AddProductScreen()),
+            ),
           ),
         ],
       ),
@@ -61,7 +79,9 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: const EdgeInsets.fromLTRB(20, 10, 20, 25),
             decoration: BoxDecoration(
               color: primaryColor,
-              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(30)),
+              borderRadius: const BorderRadius.vertical(
+                bottom: Radius.circular(30),
+              ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -76,7 +96,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 15),
                 // Input Pencarian
                 TextField(
-                  onChanged: (val) => setState(() => _searchQuery = val.toLowerCase()),
+                  onChanged: (val) =>
+                      setState(() => _searchQuery = val.toLowerCase()),
                   decoration: InputDecoration(
                     hintText: "Cari menu (ex: Nasi Goreng)...",
                     prefixIcon: const Icon(Icons.search, color: Colors.grey),
@@ -104,7 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
               itemBuilder: (context, index) {
                 final cat = _categories[index];
                 final isSelected = _selectedCategory == cat;
-                
+
                 return GestureDetector(
                   onTap: () {
                     // Logika Ganti Filter
@@ -113,16 +134,29 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     margin: const EdgeInsets.only(right: 10),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 10,
+                    ),
                     decoration: BoxDecoration(
                       color: isSelected ? primaryColor : Colors.white,
                       borderRadius: BorderRadius.circular(20),
-                      border: isSelected ? null : Border.all(color: Colors.grey.shade300),
+                      border: isSelected
+                          ? null
+                          : Border.all(color: Colors.grey.shade300),
                       boxShadow: [
-                        if (isSelected) 
-                          BoxShadow(color: primaryColor.withOpacity(0.4), blurRadius: 8, offset: const Offset(0, 4))
+                        if (isSelected)
+                          BoxShadow(
+                            color: primaryColor.withOpacity(0.4),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          )
                         else
-                          BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 4, offset: const Offset(0, 2))
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.1),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
                       ],
                     ),
                     alignment: Alignment.center,
@@ -148,19 +182,25 @@ class _HomeScreenState extends State<HomeScreen> {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                
+
                 // 2. Error
                 if (snapshot.hasError) {
-                  return Center(child: Text("Terjadi kesalahan: ${snapshot.error}"));
+                  return Center(
+                    child: Text("Terjadi kesalahan: ${snapshot.error}"),
+                  );
                 }
 
                 // 3. Ambil Data Mentah
                 final allProducts = snapshot.data ?? [];
-                
+
                 // --- LOGIKA FILTER UTAMA ---
                 final filteredProducts = allProducts.where((product) {
-                  final matchesCategory = _selectedCategory == 'All' || product.category == _selectedCategory;
-                  final matchesSearch = product.name.toLowerCase().contains(_searchQuery);
+                  final matchesCategory =
+                      _selectedCategory == 'All' ||
+                      product.category == _selectedCategory;
+                  final matchesSearch = product.name.toLowerCase().contains(
+                    _searchQuery,
+                  );
                   return matchesCategory && matchesSearch;
                 }).toList();
 
@@ -170,11 +210,18 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.restaurant_menu, size: 80, color: Colors.grey[300]),
+                        Icon(
+                          Icons.restaurant_menu,
+                          size: 80,
+                          color: Colors.grey[300],
+                        ),
                         const SizedBox(height: 15),
                         Text(
                           "Menu $_selectedCategory tidak ditemukan",
-                          style: TextStyle(color: Colors.grey[600], fontSize: 16),
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 16,
+                          ),
                         ),
                       ],
                     ),
@@ -183,17 +230,28 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 // 5. Tampilkan Grid
                 return GridView.builder(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 80), // Padding bawah agar tidak tertutup FAB
+                  padding: const EdgeInsets.fromLTRB(
+                    20,
+                    0,
+                    20,
+                    80,
+                  ), // Padding bawah agar tidak tertutup FAB
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
-                    childAspectRatio: 0.70, // Rasio sedikit dipanjangkan agar muat tombol delete
+                    childAspectRatio:
+                        0.70, // Rasio sedikit dipanjangkan agar muat tombol delete
                     crossAxisSpacing: 15,
                     mainAxisSpacing: 15,
                   ),
                   itemCount: filteredProducts.length,
                   itemBuilder: (context, index) {
                     final product = filteredProducts[index];
-                    return _buildMenuCard(context, product, currencyFormatter, primaryColor);
+                    return _buildMenuCard(
+                      context,
+                      product,
+                      currencyFormatter,
+                      primaryColor,
+                    );
                   },
                 );
               },
@@ -205,7 +263,10 @@ class _HomeScreenState extends State<HomeScreen> {
       // --- 3. TOMBOL MELAYANG (FAB) ---
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-           Navigator.push(context, MaterialPageRoute(builder: (_) => const CashierScreen()));
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const CashierScreen()),
+          );
         },
         backgroundColor: primaryColor,
         elevation: 4,
@@ -223,16 +284,22 @@ class _HomeScreenState extends State<HomeScreen> {
         elevation: 10,
         onTap: (index) {
           setState(() => _bottomNavIndex = index);
-          
-          if (index == 1) { 
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const CashierScreen()));
-          } else if (index == 3) { 
+
+          if (index == 1) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const CashierScreen()),
+            );
+          } else if (index == 3) {
             _showLogoutDialog(context);
           }
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Orders'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_cart),
+            label: 'Orders',
+          ),
           BottomNavigationBarItem(icon: Icon(Icons.history), label: 'History'),
           BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Setting'),
         ],
@@ -241,24 +308,36 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // --- WIDGET HELPER: KARTU PRODUK ---
-  Widget _buildMenuCard(BuildContext context, ProductModel product, NumberFormat formatter, Color primaryColor) {
+  Widget _buildMenuCard(
+    BuildContext context,
+    ProductModel product,
+    NumberFormat formatter,
+    Color primaryColor,
+  ) {
     IconData categoryIcon;
     Color iconColor;
 
     switch (product.category) {
       case 'Makanan':
-        categoryIcon = Icons.restaurant; iconColor = Colors.redAccent; break;
+        categoryIcon = Icons.restaurant;
+        iconColor = Colors.redAccent;
+        break;
       case 'Minuman':
-        categoryIcon = Icons.local_drink; iconColor = Colors.blueAccent; break;
+        categoryIcon = Icons.local_drink;
+        iconColor = Colors.blueAccent;
+        break;
       case 'Snack':
-        categoryIcon = Icons.cookie; iconColor = Colors.orangeAccent; break;
+        categoryIcon = Icons.cookie;
+        iconColor = Colors.orangeAccent;
+        break;
       case 'Dessert':
-        categoryIcon = Icons.cake; iconColor = Colors.pinkAccent; break;
+        categoryIcon = Icons.cake;
+        iconColor = Colors.pinkAccent;
+        break;
       default:
-        categoryIcon = Icons.fastfood; iconColor = Colors.grey;
+        categoryIcon = Icons.fastfood;
+        iconColor = Colors.grey;
     }
-
-    String? imageUrl; 
 
     return Container(
       decoration: BoxDecoration(
@@ -269,7 +348,7 @@ class _HomeScreenState extends State<HomeScreen> {
             color: Colors.grey.withOpacity(0.15),
             blurRadius: 10,
             offset: const Offset(0, 5),
-          )
+          ),
         ],
       ),
       child: ClipRRect(
@@ -279,17 +358,17 @@ class _HomeScreenState extends State<HomeScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Area Gambar
+                /// Bagian untuk menampilkan ikon kategori produk
                 Expanded(
-                  flex: 3, 
+                  flex: 3,
                   child: Container(
                     color: iconColor.withOpacity(0.1),
-                    child: (imageUrl != null && imageUrl.isNotEmpty)
-                      ? Image.network(imageUrl, fit: BoxFit.cover)
-                      : Center(child: Icon(categoryIcon, size: 40, color: iconColor)),
+                    child: Center(
+                      child: Icon(categoryIcon, size: 40, color: iconColor),
+                    ),
                   ),
                 ),
-                
+
                 // Area Info
                 Expanded(
                   flex: 2,
@@ -306,33 +385,50 @@ class _HomeScreenState extends State<HomeScreen> {
                               product.name,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
                             ),
                             Text(
                               product.category,
-                              style: TextStyle(color: Colors.grey[500], fontSize: 11),
+                              style: TextStyle(
+                                color: Colors.grey[500],
+                                fontSize: 11,
+                              ),
                             ),
                           ],
                         ),
-                        
+
                         // BARIS TOMBOL AKSI (HARGA - EDIT - HAPUS)
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              formatter.format(product.price).replaceAll("Rp ", ""), 
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: primaryColor),
+                              formatter
+                                  .format(product.price)
+                                  .replaceAll("Rp ", ""),
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: primaryColor,
+                              ),
                             ),
-                            
+
                             // GABUNGAN TOMBOL EDIT DAN DELETE
                             Row(
                               children: [
                                 // Tombol Edit (Biru)
                                 InkWell(
                                   onTap: () {
-                                    Navigator.push(context, MaterialPageRoute(
-                                      builder: (_) => AddProductScreen(productToEdit: product)
-                                    ));
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => AddProductScreen(
+                                          productToEdit: product,
+                                        ),
+                                      ),
+                                    );
                                   },
                                   child: Container(
                                     padding: const EdgeInsets.all(4),
@@ -340,24 +436,33 @@ class _HomeScreenState extends State<HomeScreen> {
                                       color: primaryColor.withOpacity(0.1),
                                       borderRadius: BorderRadius.circular(6),
                                     ),
-                                    child: Icon(Icons.edit, color: primaryColor, size: 18),
+                                    child: Icon(
+                                      Icons.edit,
+                                      color: primaryColor,
+                                      size: 18,
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(width: 8), // Jarak antar tombol
                                 // Tombol Delete (Merah) - FITUR BARU
                                 InkWell(
-                                  onTap: () => _showDeleteDialog(context, product),
+                                  onTap: () =>
+                                      _showDeleteDialog(context, product),
                                   child: Container(
                                     padding: const EdgeInsets.all(4),
                                     decoration: BoxDecoration(
                                       color: Colors.red.withOpacity(0.1),
                                       borderRadius: BorderRadius.circular(6),
                                     ),
-                                    child: const Icon(Icons.delete_outline, color: Colors.red, size: 18),
+                                    child: const Icon(
+                                      Icons.delete_outline,
+                                      color: Colors.red,
+                                      size: 18,
+                                    ),
                                   ),
                                 ),
                               ],
-                            )
+                            ),
                           ],
                         ),
                       ],
@@ -380,7 +485,10 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text("Konfirmasi Logout"),
         content: const Text("Apakah Anda yakin ingin keluar?"),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Batal")),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text("Batal"),
+          ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(ctx);
@@ -410,10 +518,12 @@ class _HomeScreenState extends State<HomeScreen> {
             const Text("Hapus Menu"),
           ],
         ),
-        content: Text("Anda yakin ingin menghapus '${product.name}' dari database? Tindakan ini tidak bisa dibatalkan."),
+        content: Text(
+          "Anda yakin ingin menghapus '${product.name}' dari database? Tindakan ini tidak bisa dibatalkan.",
+        ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(ctx), 
+            onPressed: () => Navigator.pop(ctx),
             child: const Text("Batal", style: TextStyle(color: Colors.grey)),
           ),
           ElevatedButton(
@@ -422,14 +532,17 @@ class _HomeScreenState extends State<HomeScreen> {
               try {
                 // Panggil Provider untuk Hapus
                 await context.read<ProductProvider>().deleteProduct(product.id);
-                
+
                 if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text("Menu berhasil dihapus")),
                 );
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("Gagal menghapus: $e"), backgroundColor: Colors.red),
+                  SnackBar(
+                    content: Text("Gagal menghapus: $e"),
+                    backgroundColor: Colors.red,
+                  ),
                 );
               }
             },
